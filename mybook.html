@@ -24,7 +24,12 @@ function Book()
     this.data["is_mybook"] = true;              // for is book object check        
     this.data["recs"] = recs;                   // records here
     this.data["name"] = "my test book #1";      // book title
-    this.data["tags"] = ["tag1","tag2","tag3"]; 
+    this.data["tags"] = ["tag1","tag2"];        
+    
+    var u1 = new Date().getTime();
+    var u2 = (Math.random()*1000000) | 0 ;
+    this.data["uuid"] =  u1 + "-" + u2 ;  // book UUID
+    
     
 };
 
@@ -39,7 +44,21 @@ Book.prototype.load_book = function (){
         this.newbook=true;      
     } else {    
         this.data = JSON.parse( saved_book );
-    }
+    };
+    
+    
+    if (! this.data["uuid"] ) {
+              
+    var u1 = new Date().getTime();
+    var u2 = (Math.random()*1000000) | 0 ;
+    this.data["uuid"] =  u1 + "-" + u2 ;  // book UUID
+    
+    console.log("generate UUID for book: " + this.data["uuid"] );
+    this.save_book();
+    
+    };
+    
+       
 };
 
 // export book.data to base64
@@ -60,9 +79,6 @@ Book.prototype.import_from_base64 = function(base64) {
         return false;
     };
 };
-
-
-//JSON.parse(decodeURIComponent( atob(
 
 
 
@@ -113,11 +129,8 @@ Book.prototype.remove = function(id) {
 
 
 Book.prototype.print_trash_records = function() {  
-
     this.trash_mode=true;
-    
     this.print_records();
-
 };
 
 Book.prototype.print_records = function() {    
@@ -538,8 +551,9 @@ $(document).ready(function(){
         $("#divlist").hide();
         $("#empty_trash").hide();
         $("#book_name").val(book["data"].name);
-                
-                $("#book_options_tags").html( book.get_tags_bookopt_htmlblock() );
+        
+        $("#book_uuid").text( book["data"]["uuid"] );
+        $("#book_options_tags").html( book.get_tags_bookopt_htmlblock() );
     
     });
     
@@ -639,6 +653,7 @@ $(document).ready(function(){
         <span class="input-group-addon" >Book name</span>
         <input type="text" id="book_name" class="form-control" placeholder="Book name" aria-describedby="basic-addon1">
     </div>
+       
     
     <div class="well">     
         <div class="input-group input-group-lg">
@@ -656,6 +671,13 @@ $(document).ready(function(){
     
     <button type="button" class="btn btn-primary btn-default active" onclick="export_book();">Export book to file</button>
     <button type="button" class="btn btn-primary btn-default active" onclick="import_book();">Import book from file</button>
+    <p></p>
+    <div class="row">
+        <div class="col-sm-1" >book uuid</div>
+        <div class="col-sm-2" > <div id="book_uuid" class="text-muted">uuid</div> </div>
+        </div>
+  
+     
     
 </div>
 
