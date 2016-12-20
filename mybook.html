@@ -1,0 +1,666 @@
+<html>
+<head>
+  <title>myNote</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+<script>
+
+function Book()
+{
+    recs = new Array();    
+    this.trash_mode = false;
+    
+    this.data = {};
+    this.data["is_mybook"] = true;              // for is book object check        
+    this.data["recs"] = recs;                   // records here
+    this.data["name"] = "my test book #1";      // book title
+    this.data["tags"] = ["tag1","tag2","tag3"]; 
+    
+};
+
+// save Book.data to localStorage
+Book.prototype.save_book = function(){
+    localStorage.setItem("mybook_2", JSON.stringify(this.data) );
+};
+
+Book.prototype.load_book = function (){    
+    var saved_book = localStorage.getItem("mybook_2");
+    if ( saved_book == null ) {    
+        this.newbook=true;      
+    } else {    
+        this.data = JSON.parse( saved_book );
+    }
+};
+
+// export book.data to base64
+Book.prototype.get_book64 = function() {        
+    var enc_base64 = btoa(encodeURIComponent(JSON.stringify(this.data))) ;
+    return enc_base64;
+};
+
+
+Book.prototype.import_from_base64 = function(base64) {    
+    
+    try {
+        var decode = JSON.parse(decodeURIComponent(atob(base64))) ;    
+        this.data = decode ;
+        return true;
+    } catch(e) {
+        console.log("import error!");
+        return false;
+    };
+};
+
+
+//JSON.parse(decodeURIComponent( atob(
+
+
+
+
+Book.prototype.add = function(r) {    
+    this.data["recs"].push(r);    
+};
+
+
+Book.prototype.get_record_by_id = function(id) {    
+    for (r in this.data["recs"]){
+        if ( this.data["recs"][r].id == id ) { return this.data["recs"][r] }
+    }
+    return {}
+};
+
+
+
+Book.prototype.update_record = function(id, title, body, pri, tags) {    
+    
+    for (r in this.data["recs"]){
+        if ( this.data["recs"][r].id == id ) { 
+        
+                this.data["recs"][r].title = title;
+                this.data["recs"][r].body = body;
+                this.data["recs"][r].pri = pri;
+                this.data["recs"][r].tags = tags;
+                               
+            return this.data["recs"][r] 
+        }
+    }
+    return {}
+
+};
+
+Book.prototype.remove = function(id) {    
+    // remove record by id
+    console.log("remove id:" + id);
+    
+    this.data["recs"] = jQuery.grep(this.data["recs"], function(value) {
+        return value.id != id ;
+    }); 
+       
+
+};
+
+
+
+
+Book.prototype.print_trash_records = function() {  
+
+    this.trash_mode=true;
+    
+    this.print_records();
+
+};
+
+Book.prototype.print_records = function() {    
+        
+    // sort records by id (created time)
+    var idsorted = []; 
+    for (i in this.data["recs"]){ 
+        idsorted.push( this.data["recs"][i].id ); 
+    }
+    // reverse sorted :
+    idsorted.sort(function(a, b){return b-a});
+            
+    var out = '<table class="table table-hover">';
+
+    // out in doble sort: first -  pri , second - time(id)
+    printed = [];
+    for (var getpri = 1; getpri<4; ++getpri){
+        for (i in idsorted){
+            for (r in this.data["recs"]){
+                
+                if (  jQuery.inArray("__deleted__", this.data["recs"][r]["tags"] ) >= 0 ) { 
+                    // this is deleted record                    
+                    if ( this.trash_mode == false  ) { continue ; };
+                } else {  
+                    // this is normal record
+                    if ( this.trash_mode == true  ) { continue ;  };
+                };
+                
+                
+                if  ( (this.data["recs"][r].pri == getpri ) & !(this.data["recs"][r].id in printed)  & (this.data["recs"][r].id ==  idsorted[i]) )  {
+            
+                    tclass = " ";
+                    if ( this.data["recs"][r].pri == "1"  ) {
+                        tclass = " class='danger' ";
+                    }
+                    if ( this.data["recs"][r].pri == "2"  ) {
+                        tclass = " class='warning' ";
+                    }
+                    
+                    out += "<tr "  + tclass + ">";
+                
+                   
+                    var date = new Date();
+                    date.setTime( this.data["recs"][r].id );
+                    print_date = date.toLocaleDateString() + " " + date.toLocaleTimeString();
+                   
+                    //out = out + "<th class='col-md-2'>" +  print_date  + "</th>" + " <th class='col-md-1'>" + this.records[r].pri + " </th> <th onclick='show_record(" + this.records[r].id + ")'>" + this.records[r].title + "</th>";
+                    out = out + " <th onclick='show_record(" + this.data["recs"][r].id + ")'>" + this.data["recs"][r].title ;
+                    
+                    
+                    for (t in this.data["recs"][r]["tags"] ) {
+                    //<span class="label label-info label-right">Info</span>
+                        out +=  '&nbsp; <span class="label label-info">' + this.data["recs"][r]["tags"][t] +  '</span>';
+                    };
+                    
+                    out += "</th></tr>"
+                    
+                    printed.push( idsorted[i] );
+                    break;
+                }
+            }
+        }
+    }
+    
+    out += "</table>"
+          
+    $("#list").html( out );
+    
+    
+
+}
+
+Book.prototype.get_tags_htmlblock = function(rec){
+// Generate html block of tags on record form
+
+    var rec_tags = [];
+    try {
+        rec_tags = rec.tags ;
+    } catch(e) {        
+        };
+        
+    var html_return = "" ; 
+    
+    // tags from rec (already attached)
+    for(t in rec_tags ) {
+         html_return += '<label class="checkbox-inline"><input type="checkbox" value="' + rec_tags[t] + '" class="istag"' + rec_tags[t] +  '" checked>' + rec_tags[t] + '</label>';
+    }
+        
+    // ... + other tags from book object
+    for(t in this.data["tags"]) {        
+        if ( jQuery.inArray(this.data["tags"][t], rec_tags)  < 0 ) {                    
+            html_return += '<label class="checkbox-inline"><input type="checkbox" value="' + this.data["tags"][t] + '" class="istag" >' + this.data["tags"][t] + '</label>';
+        }    
+    }
+    
+    return html_return ;
+   
+};
+
+
+Book.prototype.get_tags_bookopt_htmlblock = function(){
+// Generate html block of tags on BOOK OPTIONS form
+
+    var html_return = "" ; 
+    for(t in this.data["tags"]) {
+    //<button type="button" class="list-group-item">Dapibus ac facilisis in</button>
+    //<button id="-" class="btn btn-primary  btn-danger"> 
+        //<span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span> Empty trash </button>         
+        html_return += '&nbsp;&nbsp;<div class="btn-group"> <button type="button" class="btn">'  + this.data["tags"][t] + '</button>  <button onclick=delete_tag(' + t + ')  class="btn btn-primary  btn-danger"> - </button> </div>' ;
+             
+        
+    }
+    return html_return ;
+};
+
+
+
+
+function Record()
+{   
+    this.id = Date.now();
+    this.title = "New record";
+    this.body = "-";
+    this.pri = 3; 
+    this.tags = [];
+    
+    
+}
+
+function delete_tag(t) {
+
+    
+    book.data["tags"].splice(t,1);
+    
+    /*
+    book.data["tags"] = jQuery.grep(book.data["tags"], function(value) {
+        return value != t ;
+    });
+    */
+    
+    book.save_book();
+    
+    $("#go_book_options").click();
+    
+};
+
+
+function set_priory(pri){
+
+$("#r_priory").val( pri );
+
+};
+
+// Format record form for view
+function show_record(id){
+
+    rec = book.get_record_by_id(id);
+    
+    window.scrollTo(0,1);
+    
+    // fill tag list                
+    var tags_html = book.get_tags_htmlblock( rec );
+    $("#tags_list").html(tags_html);
+    
+    
+    if ( jQuery.inArray("__deleted__", rec.tags ) < 0  ) {
+        // its normal record 
+    
+        $("#delete_record").show();
+        $("#update_record").show();
+        $("#save_new_record").hide();
+        $("#restore_record").hide();
+        $("#r_pri_buttons").show();
+        
+        
+    } else {
+        // its DELETED record
+        
+        $("#restore_record").show();
+        $("#delete_record").hide();
+        $("#update_record").hide();
+        $("#save_new_record").hide();
+        $("#r_pri_buttons").hide();
+    };
+        
+    $("#form").show();
+    
+    $("#rid").text( rec.id );
+    
+    $("#title").val( rec.title );
+    $("#body").val( rec.body );
+    $("#r_priory").val( rec.pri );
+
+
+
+};
+
+
+function export_book(){
+    
+    var data = book.get_book64();
+      
+
+};
+
+
+// Loading book on start
+
+book = new Book(); 
+book.load_book();
+
+
+
+</script>
+
+<script>
+$(document).ready(function(){
+// Document LOADED
+    
+    // HOTKEYs
+    $(document).keypress(function( event ) {
+        if ( event.which == 96 ) {  // `                    
+            $("#add").click();
+        } 
+    });
+    
+    
+    // ESC Hotkey ( it works )
+    document.onkeydown = function(evt) {
+    evt = evt || window.event;
+    var isEscape = false;
+        if ("key" in evt) {
+            isEscape = (evt.key == "Escape" || evt.key == "Esc");
+        } else { 
+            Escape = (evt.keyCode == 27);
+        }
+        if (isEscape) {
+                $("#home").click();
+    }};
+
+
+    $("#divlist").show();
+    $("#form_book").hide();   
+    $("#empty_trash").hide();
+    
+    // HOME button
+    $("#home").click(function(){
+        book.trash_mode=false;
+        $("#divlist").show();
+        $("#form_book").hide();   
+        $("#empty_trash").hide();
+        
+        book.print_records();
+        $("#form").hide();
+    });
+    
+    // Create NEW record pressed
+    $("#add").click(function(){
+        
+        $("#form_book").hide();
+        $("#restore_record").hide();
+        
+        // fill tag list                
+        var tags_html = book.get_tags_htmlblock();
+        $("#tags_list").html(tags_html);
+        
+        //console.log( document.getElementById('tag2').checked );
+        
+        $("#form").show();        
+        $("#title").val("");
+        $("#body").val("");
+        $("#r_priory").val("3");
+        
+        
+        $("#save_new_record").show();
+        $("#delete_record").hide();
+        $("#update_record").hide();
+        
+        r = new Record();
+        
+        $("#rid").text( r.id );
+        $("#title").focus();
+            
+    });
+    
+    // Press ADD on "create new" page
+    $("#save_new_record").click(function(){
+        r.title = $("#title").val();
+        r.body = $("#body").val();
+        r.pri = $("#r_priory").val();
+        
+        // process tags
+        var tags = $(".istag");        
+        for (t in tags){
+            if ( tags[t].checked ) {
+            //console.log( tags[t].value + " checked");
+            r.tags.push(tags[t].value);
+            }
+        }
+        
+        book.add(r);
+        $("#form").hide();        
+        $("#save_new_record").hide();
+        
+        book.save_book();
+        book.print_records();
+    });
+    
+    // UPDATE record
+    $("#update_record").click(function(){
+    
+        var id = $("#rid").text();
+        
+        var title = $("#title").val();
+        var body = $("#body").val();
+        var pri = $("#r_priory").val();
+        
+        // process tags
+        var tags = $(".istag");
+        var checked_tags = [];
+        for (t in tags){
+            if ( tags[t].checked ) {            
+                checked_tags.push(tags[t].value);
+            }
+        }
+        
+        book.update_record( id, title, body, pri, checked_tags );       
+        
+        $("#form").hide();
+        book.save_book();
+        book.print_records();
+        
+        
+    });
+    
+    // Restore Record from trash
+    
+    $("#restore_record").click(function(){
+        var id = $("#rid").text();                
+        var r = book.get_record_by_id(id);        
+        
+        // remove "__deleted__" tag
+        r["tags"] = jQuery.grep(r["tags"], function(value) {
+            return value != "__deleted__" ;
+        });
+        
+        
+        $("#form").hide();
+        book.save_book();
+        book.print_trash_records();
+    });
+    
+    
+    // Remove Record
+    $("#delete_record").click(function(){
+        var id = $("#rid").text();
+        console.log("removing id:" + id);
+        
+        var r = book.get_record_by_id(id);
+        r["tags"].push("__deleted__");
+        //book.remove(id);
+        
+        
+        $("#form").hide();
+        book.save_book();
+        book.print_records();
+        
+    });
+    
+    $("#save_to_store").click(function(){
+        book.save_book();
+    });
+    
+    $("#load_from_store").click(function(){
+        book.load_book();        
+        book.print_records();
+    });
+    
+    /// Goto TRASH
+    $("#go_trash").click(function(){
+        console.log("go trash mode");
+        $("#empty_trash").show();
+        $("#form_book").hide();
+        
+        book.print_trash_records();
+        $("#form").hide();
+        
+    });
+
+    //  EMPTY Trash
+    $("#empty_trash").click(function(){
+        
+        var to_del = [];
+        
+        for (r in book["data"]["recs"]) {
+        
+            if (  jQuery.inArray("__deleted__", book.data["recs"][r]["tags"] ) >= 0 ) { 
+                // this is deleted record              
+                console.log("Plan to delete: " + book["data"]["recs"][r].title );
+                to_del.push( book["data"]["recs"][r].id );
+            }
+        }
+        
+        for (d in to_del){
+            book.remove(to_del[d]);
+            }
+        
+        book.save_book();
+        book.print_trash_records();
+        
+    });
+
+    // show book options
+    $("#go_book_options").click(function(){
+        
+        $("#form").hide();
+        $("#form_book").show();
+        $("#divlist").hide();
+        $("#empty_trash").hide();
+        $("#book_name").val(book["data"].name);
+                
+                $("#book_options_tags").html( book.get_tags_bookopt_htmlblock() );
+    
+    });
+    
+    
+    // add new tag to book
+    $("#add_new_tag").click(function(){
+    
+        book["data"].tags.push( $("#newtag").val() );
+        $("#newtag").val("");
+        book.save_book();
+        $("#go_book_options").click();
+        
+        
+    });
+    
+    
+    $("#save_new_record").hide();
+    $("#form").hide();
+    book.print_records();
+    
+});
+
+
+</script>
+
+
+
+<!-- /////////////////  HTML MARKUP /////////////////////////////////////////////////////////////////////////////////////////// -->
+
+<!-- navigator -->
+<nav class="navbar">
+    <div class="btn-group">
+      <button id="home" class="btn btn-primary btn-lg" >
+        <span class="glyphicon glyphicon-home" aria-hidden="true"></span> Home </button>
+      <button id="add" class="btn btn-primary btn-lg"> 
+        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> New </button>    
+      <button id="empty_trash" class="btn btn-primary  btn-danger btn-lg"> 
+        <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span> Empty trash </button>    
+        
+    </div> 
+    <div class="btn-group pull-right">
+    <button type="button" class="btn btn-primary btn-lg dropdown-toggle" data-toggle="dropdown">
+    <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span> <span class="caret"></span></button>
+        <ul class="dropdown-menu" role="menu">
+      <li><a href="#" id="go_book_options"><span class="glyphicon glyphicon-cog " aria-hidden="true"></span> Book options</a></li>
+      <li><a href="#" id="go_trash">  <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Trash </a></li>
+    </ul>
+  </div>
+    
+    
+</nav>
+
+<!--
+<div class="btn-group">
+  <button id="save_to_store" class="btn btn-primary"> Save </button>
+  <button id="load_from_store" class="btn btn-primary"> Load </button>
+</div> 
+-->
+
+<!-- record form -->
+<div id="form">
+    <div id="tags_list"> TAGS HERE </div>
+    <div class="input-group input-group-lg">
+          <input id="title" type="text" class="form-control" placeholder="title">
+          <span class="input-group-btn">  
+              <button id="save_new_record" class="btn btn-success ">
+                add <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button> 
+              <button id="update_record" class="btn btn-warning "> 
+                update <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button>
+              <button id="restore_record" class="btn btn-warning "> 
+                restore <span class="glyphicon glyphicon-repeat" aria-hidden="true"/></button>
+                
+          </span>
+      </span>
+    </div>
+    <div class="input-group">
+            <span class="input-group-addon"></span>
+        <textarea id="body" type="text" class="form-control " rows="3" placeholder="more text"></textarea>
+    </div>
+    <div class="btn-group" id="r_pri_buttons">
+        <button type="button" class="btn btn-primary btn-default active" onclick="set_priory(3);">Low</button>
+        <button type="button" class="btn btn-primary btn-warning"  onclick="set_priory(2);">Medium</button>
+        <button type="button" class="btn btn-primary btn-danger" onclick="set_priory(1);">High</button>
+        <input type="hidden" id="r_priory" >
+    </div>
+    
+     <button id="delete_record" class="btn btn-danger btn-sm"> del <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>  
+     
+     <input type="hidden" id="rid"> 
+</div>
+
+<!-- book options form -->
+<div id="form_book">
+
+    <!-- book name -->
+    <div class="input-group">
+        <span class="input-group-addon" >Book name</span>
+        <input type="text" id="book_name" class="form-control" placeholder="Book name" aria-describedby="basic-addon1">
+    </div>
+    
+    <div class="well">     
+        <div class="input-group input-group-lg">
+              <input id="newtag" type="text" class="form-control" placeholder="new tag">
+              <span class="input-group-btn">  
+                  <button id="add_new_tag" class="btn btn-success ">
+                    add <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button>
+              </span>
+        </div>
+        
+        <div class="well"> tags
+            <div class="list-group" id="book_options_tags"></div>
+        </div>
+    </div>
+    
+    <button type="button" class="btn btn-primary btn-default active" onclick="export_book();">Export book to file</button>
+    <button type="button" class="btn btn-primary btn-default active" onclick="import_book();">Import book from file</button>
+    
+</div>
+
+<!-- records list -->
+<div id="divlist">
+    <p id="list">...</p>
+</div>
+
+</body>
+</html>
+
