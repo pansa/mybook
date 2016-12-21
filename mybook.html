@@ -21,7 +21,7 @@ function Book()
     this.data = {};
     this.data["is_mybook"] = true;              // for is book object check        
     this.data["recs"] = recs;                   // records here
-    this.data["name"] = "my test book #1";      // book title
+    this.data["name"] = "New book";      // book title
     this.data["tags"] = ["tag1","tag2"];        
     
     var u1 = new Date().getTime();
@@ -367,21 +367,54 @@ function open_book(id){
 
     book.load_book(id);
     localStorage.setItem("mybook_lastbook", book.data.uuid );
+    update_booklist_menu();
+    update_home_button();
     $("#home").click();    
-
 };
 
+
+// delete current book
+function delete_book(){
+
+    del_book_id = book.data.uuid;
+    console.log("DEL " +  del_book_id);
+    
+    if ( shelve.length > 1 ) {
+    
+        shelve = jQuery.grep(shelve, function(value) {
+        return value != del_book_id ;
+        });
+        
+        localStorage.removeItem("mybook_" + del_book_id);        
+        lastbook_id = shelve[0];
+        store_shelve();
+        open_book(lastbook_id);
+        $("#home").click();  
+    
+    
+    } else {
+    // its a last book... :(
+    
+        localStorage.removeItem("mybook_" + del_book_id);
+        localStorage.removeItem("mybook_lastbook");
+        main();
+        
+    
+    }
+    
+
+};
 
 
 // generate books list in dropmenu
 function update_booklist_menu(){
 
-  var tmpbooks = '' ;
+    var tmpbooks = '' ;
     for (var b in shelve){
     
-        var bname = JSON.parse(localStorage.getItem( "mybook_" + shelve[b] ))["name"]; 
+        var bname = JSON.parse(localStorage.getItem( "mybook_" + shelve[b] )).name; 
         
-        tmpbooks += '<li><a href="#" onclick="open_book(' + "'" + shelve[b] + "'" +  ');  " ><span class="glyphicon glyphicon-cog " aria-hidden="true"></span>' + bname + '</a></li>'
+        tmpbooks += '<li><a href="#" onclick="open_book(' + "'" + shelve[b] + "'" +  ');  " ><span class="glyphicon glyphicon-book " aria-hidden="true"></span>  ' + bname + '</a></li>'
         
     };
     $("#listbooks").html(tmpbooks);
@@ -397,6 +430,13 @@ function shelve_get_books () {
 }
 
 
+function update_home_button(){
+
+$("#home").html('<span class="glyphicon glyphicon-home" aria-hidden="true"/> ' + book.data.name) ;
+
+};
+
+
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 // INTRANCE point
 function main(){
@@ -405,24 +445,25 @@ function main(){
     MYBOOK_VER="0.1.1";
 
     
-    
+    shelve = []
     // Loading book on start
     book = new Book(); 
     lastbook_id = localStorage.getItem("mybook_lastbook");
-    shelve = load_shelve();
+        
     
     if (! lastbook_id ) {            
-        console.log("lastbook not found, create new book");
-        
         // no stored books, use NEW book
+        console.log("lastbook not found, create new book");                
+        
         lastbook_id = book["data"].uuid;
         shelve.push(lastbook_id);
         store_shelve();
         book.save_book( );
         
-    } else {
-    
+    } else {    
         // lastbook found, try to load this book
+        shelve = load_shelve();
+        
         if ( book.load_book( lastbook_id )){
             //  lastbook load ok
             
@@ -431,9 +472,7 @@ function main(){
             // lastbook not found!
             console.log("Err: cant found lastbook in localStorage!");
             
-        }
-    
-    
+        }        
     };
     
     
@@ -453,6 +492,7 @@ $(document).ready(function(){
 // Document LOADED
     
     update_booklist_menu();
+    update_home_button();
     
     // HOTKEYs
     $(document).keypress(function( event ) {
@@ -474,16 +514,14 @@ $(document).ready(function(){
         if (isEscape) {
                 $("#home").click();
     }};
-
     
-    
-
     $("#divlist").show();
     $("#form_book").hide();   
     $("#empty_trash").hide();
     
     // HOME button
     $("#home").click(function(){
+        update_booklist_menu()
         book.trash_mode=false;
         $("#divlist").show();
         $("#form_book").hide();   
@@ -683,6 +721,7 @@ $(document).ready(function(){
         book.data.name = $("#book_name").val() ;
         book.save_book();
         update_booklist_menu();
+        update_home_button();
         $("#go_book_options").click();
     
     });
@@ -696,6 +735,7 @@ $(document).ready(function(){
         lastbook_id = book["data"].uuid;
         shelve.push(lastbook_id);
         store_shelve();
+        update_home_button();
         book.save_book( );
         
         
@@ -720,9 +760,9 @@ $(document).ready(function(){
 <nav class="navbar">
     <div class="btn-group">
       <button id="home" class="btn btn-primary btn-lg" >
-        <span class="glyphicon glyphicon-home" aria-hidden="true"></span> Home </button>
+        <span class="glyphicon glyphicon-home" aria-hidden="true"/> Home </button>
       <button id="add" class="btn btn-primary btn-lg"> 
-        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> New </button>    
+        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> add </button>    
       <button id="empty_trash" class="btn btn-primary  btn-danger btn-lg"> 
         <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span> Empty trash </button>    
         
@@ -813,6 +853,7 @@ $(document).ready(function(){
     
     <button type="button" class="btn btn-primary btn-default active" onclick="export_book();">Export book to file</button>
     <button type="button" class="btn btn-primary btn-default active" onclick="import_book();">Import book from file</button>
+    <button type="button" class="btn btn-primary btn-danger active" onclick="delete_book();">Delete this book</button>
     <p></p>
     <div class="row">
         <div class="col-sm-1" >book uuid</div>
