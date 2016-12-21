@@ -12,8 +12,6 @@
 
 <script>
 
-MYBOOK_VER="0.1.1";
-
 
 function Book()
 {
@@ -30,32 +28,35 @@ function Book()
     var u2 = (Math.random()*1000000) | 0 ;
     this.data["uuid"] =  u1 + "-" + u2 ;  // book UUID
     
-    
 };
 
 // save Book.data to localStorage
-Book.prototype.save_book = function(){
-    localStorage.setItem("mybook_2", JSON.stringify(this.data) );
+Book.prototype.save_book = function(  ){
+
+    console.log( "save book " + "mybook_" + this.data.uuid );
+    localStorage.setItem("mybook_" + this.data.uuid, JSON.stringify(this.data) );
 };
 
-Book.prototype.load_book = function (){    
-    var saved_book = localStorage.getItem("mybook_2");
+Book.prototype.load_book = function ( uuid ){    
+    var saved_book = localStorage.getItem( "mybook_" + uuid );
     if ( saved_book == null ) {    
-        this.newbook=true;      
+        this.newbook=true; 
+        return false;
+        
     } else {    
         this.data = JSON.parse( saved_book );
+        return true;
     };
     
-    
+
+        // TODO REMOVE THIS, for old book wo uuid
     if (! this.data["uuid"] ) {
-              
-    var u1 = new Date().getTime();
-    var u2 = (Math.random()*1000000) | 0 ;
-    this.data["uuid"] =  u1 + "-" + u2 ;  // book UUID
-    
-    console.log("generate UUID for book: " + this.data["uuid"] );
-    this.save_book();
-    
+        var u1 = new Date().getTime();
+        var u2 = (Math.random()*1000000) | 0 ;
+        this.data["uuid"] =  u1 + "-" + u2 ;  // book UUID
+        
+        console.log("generate UUID for book: " + this.data["uuid"] );
+        this.save_book();
     };
     
        
@@ -337,18 +338,121 @@ function export_book(){
 };
 
 
-// Loading book on start
+// save lastbook and shelve to localStorage
+function store_shelve(){
+    
+    localStorage.setItem("mybook_shelve", JSON.stringify( shelve ) );    
+    localStorage.setItem("mybook_lastbook", lastbook_id );
 
-book = new Book(); 
-book.load_book();
+}
+
+// save lastbook and shelve to localStorage
+function load_shelve(){
+    
+    
+    var tmps = JSON.parse(localStorage.getItem("mybook_shelve" ));    
+    
+    if (tmps) {
+        return tmps;
+    } else {
+        return [];
+    };
+        
+
+}
 
 
+// open book when clicked from dropmenu
+function open_book(id){
+
+    book.load_book(id);
+    localStorage.setItem("mybook_lastbook", book.data.uuid );
+    $("#home").click();    
+
+};
+
+
+
+// generate books list in dropmenu
+function update_booklist_menu(){
+
+  var tmpbooks = '' ;
+    for (var b in shelve){
+    
+        var bname = JSON.parse(localStorage.getItem( "mybook_" + shelve[b] ))["name"]; 
+        
+        tmpbooks += '<li><a href="#" onclick="open_book(' + "'" + shelve[b] + "'" +  ');  " ><span class="glyphicon glyphicon-cog " aria-hidden="true"></span>' + bname + '</a></li>'
+        
+    };
+    $("#listbooks").html(tmpbooks);
+
+};
+
+
+//return list of all stored books
+function shelve_get_books () {
+
+    
+
+}
+
+
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+// INTRANCE point
+function main(){
+
+    // define global version
+    MYBOOK_VER="0.1.1";
+
+    
+    
+    // Loading book on start
+    book = new Book(); 
+    lastbook_id = localStorage.getItem("mybook_lastbook");
+    shelve = load_shelve();
+    
+    if (! lastbook_id ) {            
+        console.log("lastbook not found, create new book");
+        
+        // no stored books, use NEW book
+        lastbook_id = book["data"].uuid;
+        shelve.push(lastbook_id);
+        store_shelve();
+        book.save_book( );
+        
+    } else {
+    
+        // lastbook found, try to load this book
+        if ( book.load_book( lastbook_id )){
+            //  lastbook load ok
+            
+        
+        } else {
+            // lastbook not found!
+            console.log("Err: cant found lastbook in localStorage!");
+            
+        }
+    
+    
+    };
+    
+    
+
+
+};
+
+
+
+
+main();
 
 </script>
 
 <script>
 $(document).ready(function(){
 // Document LOADED
+    
+    update_booklist_menu();
     
     // HOTKEYs
     $(document).keypress(function( event ) {
@@ -371,6 +475,8 @@ $(document).ready(function(){
                 $("#home").click();
     }};
 
+    
+    
 
     $("#divlist").show();
     $("#form_book").hide();   
@@ -548,6 +654,7 @@ $(document).ready(function(){
         
         $("#form").hide();
         $("#form_book").show();
+                
         $("#divlist").hide();
         $("#empty_trash").hide();
         $("#book_name").val(book["data"].name);
@@ -568,6 +675,32 @@ $(document).ready(function(){
         
         
     });
+    
+    
+    // BOOK name UPDATE
+    $("#update_bookname").click(function (){
+        console.log( $("#book_name").val() );
+        book.data.name = $("#book_name").val() ;
+        book.save_book();
+        update_booklist_menu();
+        $("#go_book_options").click();
+    
+    });
+    
+    
+    $("#create_new_book").click(function(){
+    
+        book = new Book(); 
+        
+        $("#go_book_options").click();
+        lastbook_id = book["data"].uuid;
+        shelve.push(lastbook_id);
+        store_shelve();
+        book.save_book( );
+        
+        
+    });
+    
     
     
     $("#save_new_record").hide();
@@ -597,9 +730,12 @@ $(document).ready(function(){
     <div class="btn-group pull-right">
     <button type="button" class="btn btn-primary btn-lg dropdown-toggle" data-toggle="dropdown">
     <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span> <span class="caret"></span></button>
-        <ul class="dropdown-menu" role="menu">
-      <li><a href="#" id="go_book_options"><span class="glyphicon glyphicon-cog " aria-hidden="true"></span> Book options</a></li>
-      <li><a href="#" id="go_trash">  <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Trash </a></li>
+        <ul id="book_dropdown" class="dropdown-menu" role="menu">
+            <li class="dropdown-header">Books</li>
+            <div id="listbooks"></div>
+            <li class="dropdown-header">Current book</li>
+            <li><a href="#" id="go_book_options"><span class="glyphicon glyphicon-cog " aria-hidden="true"></span> Book options</a></li>
+            <li><a href="#" id="go_trash">  <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Trash </a></li>
     </ul>
   </div>
     
@@ -641,7 +777,7 @@ $(document).ready(function(){
     </div>
     
      <button id="delete_record" class="btn btn-danger btn-sm"> del <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>  
-     
+        
      <input type="hidden" id="rid"> 
 </div>
 
@@ -652,6 +788,10 @@ $(document).ready(function(){
     <div class="input-group">
         <span class="input-group-addon" >Book name</span>
         <input type="text" id="book_name" class="form-control" placeholder="Book name" aria-describedby="basic-addon1">
+        <span class="input-group-btn">  
+            <button id="update_bookname" class="btn btn-warning "> 
+                change <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button>
+        </span>
     </div>
        
     
@@ -668,6 +808,8 @@ $(document).ready(function(){
             <div class="list-group" id="book_options_tags"></div>
         </div>
     </div>
+    
+    <button id="create_new_book" type="button" class="btn btn-primary btn-default active" > Create book</button>
     
     <button type="button" class="btn btn-primary btn-default active" onclick="export_book();">Export book to file</button>
     <button type="button" class="btn btn-primary btn-default active" onclick="import_book();">Import book from file</button>
