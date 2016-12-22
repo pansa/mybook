@@ -12,7 +12,7 @@
 
 <script>
 
-OPTION_SHOW_BOOKS_TOP = true;
+OPTION_SHOW_BOOKS_TOP = true;   // ON/OFF books list on the top (Taras-books)
 
 
 function Book()
@@ -330,6 +330,9 @@ function show_record(id){
 function export_book(){
     
     var data = book.get_book64();
+    
+    $("#book_export").show();
+    $("#book_data").text(data);
       
 
 };
@@ -695,6 +698,7 @@ $(document).ready(function(){
     $("#go_book_options").click(function(){
         
         $("#form").hide();
+        $("#book_export").hide();
         $("#form_book").show();
                 
         $("#divlist").hide();
@@ -860,15 +864,29 @@ $(document).ready(function(){
     
     <button id="create_new_book" type="button" class="btn btn-primary btn-default active" > Create book</button>
     
-    <button type="button" class="btn btn-primary btn-default active" onclick="export_book();">Export book to file</button>
-    <button type="button" class="btn btn-primary btn-default active" onclick="import_book();">Import book from file</button>
+    <button type="button" class="btn btn-primary btn-default active" onclick="export_book();">Export book </button>
+    <button type="button" class="btn btn-primary btn-default active" onclick="import_book();">Import book </button>
     <button type="button" class="btn btn-primary btn-danger active" onclick="delete_book();">Delete this book</button>
     <p></p>
     <div class="row">
         <div class="col-sm-1" >book uuid</div>
         <div class="col-sm-2" > <div id="book_uuid" class="text-muted">uuid</div> </div>
-        </div>
+    </div>
   
+    <div id="book_export" class="row">
+        <div class="col-sm-1" >Book data</div>        
+        <div class="col-sm-8"><textarea id="book_data" type="text" class="form-control " rows="3"></textarea> </div>        
+    </div>
+    
+    
+    <div id="book_import" class="input-group">
+        <span class="input-group-addon" >Import data</span>
+        <input type="text" id="book_name" class="form-control" placeholder="Paste data here..." aria-describedby="basic-addon1">
+        <span class="input-group-btn">  
+            <button id="import_book_data" class="btn btn-warning "> 
+                Import <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button>
+        </span>
+    </div>
      
     
 </div>
