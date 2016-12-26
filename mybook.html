@@ -75,7 +75,9 @@ Book.prototype.import_from_base64 = function(base64) {
     
     try {
         var decode = JSON.parse(decodeURIComponent(atob(base64))) ;    
-        this.data = decode ;
+        this.data = decode ;        
+        this.save_book();
+        
         return true;
     } catch(e) {
         console.log("import error!");
@@ -328,14 +330,21 @@ function show_record(id){
 
 
 function export_book(){
-    
     var data = book.get_book64();
-    
     $("#book_export").show();
     $("#book_data").text(data);
-      
-
 };
+
+function import_book(){
+    
+    var data = $("#book_data_i").val();
+    // TODO check import result
+    book.import_from_base64(data);
+    $("#book_data_i").val("")
+    $("#home").click();
+    
+};
+
 
 
 // save lastbook and shelve to localStorage
@@ -735,10 +744,8 @@ $(document).ready(function(){
     });
     
     
-    $("#create_new_book").click(function(){
-    
-        book = new Book(); 
-        
+    $("#create_new_book").click(function(){    
+        book = new Book();         
         $("#go_book_options").click();
         lastbook_id = book["data"].uuid;
         shelve.push(lastbook_id);
@@ -862,10 +869,9 @@ $(document).ready(function(){
         </div>
     </div>
     
-    <button id="create_new_book" type="button" class="btn btn-primary btn-default active" > Create book</button>
+    <button id="create_new_book" type="button" class="btn btn-primary btn-default active" > Create new book</button>
     
-    <button type="button" class="btn btn-primary btn-default active" onclick="export_book();">Export book </button>
-    <button type="button" class="btn btn-primary btn-default active" onclick="import_book();">Import book </button>
+    <button type="button" class="btn btn-primary btn-default active" onclick="export_book();">Export book </button>    
     <button type="button" class="btn btn-primary btn-danger active" onclick="delete_book();">Delete this book</button>
     <p></p>
     <div class="row">
@@ -881,10 +887,10 @@ $(document).ready(function(){
     
     <div id="book_import" class="input-group">
         <span class="input-group-addon" >Import data</span>
-        <input type="text" id="book_name" class="form-control" placeholder="Paste data here..." aria-describedby="basic-addon1">
+        <input type="text" id="book_data_i" class="form-control" placeholder="Paste data here..." aria-describedby="basic-addon1">
         <span class="input-group-btn">  
-            <button id="import_book_data" class="btn btn-warning "> 
-                Import <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button>
+            <button id="import_book_data" class="btn btn-warning " onclick="import_book();"> 
+                Import into this book <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button>
         </span>
     </div>
      
