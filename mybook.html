@@ -12,6 +12,8 @@
 
 <script>
 
+// define global version
+MYBOOK_VER="0.1.2";
 OPTION_SHOW_BOOKS_TOP = true;   // ON/OFF books list on the top (Taras-books)
 
 
@@ -335,11 +337,24 @@ function export_book(){
     $("#book_data").text(data);
 };
 
+
 function import_book(){
-    
+        
+    var old_book_id = book["data"].uuid;
+    console.log('importing to book ' + old_book_id);
+        
     var data = $("#book_data_i").val();
     // TODO check import result
     book.import_from_base64(data);
+    
+    
+    
+    if ( book["data"].uuid != old_book_id ) {
+        console.log('add to shelve new book ' + book["data"].uuid);
+        shelve.push( book["data"].uuid );
+        store_shelve();
+    }
+    
     $("#book_data_i").val("")
     $("#home").click();
     
@@ -456,9 +471,6 @@ $("#home").html('<span class="glyphicon glyphicon-home" aria-hidden="true"/> ' +
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 // INTRANCE point
 function main(){
-
-    // define global version
-    MYBOOK_VER="0.1.1";
 
     
     shelve = []
