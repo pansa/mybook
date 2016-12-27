@@ -25,12 +25,12 @@ function Book()
     this.data = {};
     this.data["is_mybook"] = true;              // for is book object check        
     this.data["recs"] = recs;                   // records here
-    this.data["name"] = "New book";      // book title
+    this.data["name"] = "New book";             // book title
     this.data["tags"] = ["tag1","tag2"];        
     
     var u1 = new Date().getTime();
     var u2 = (Math.random()*1000000) | 0 ;
-    this.data["uuid"] =  u1 + "-" + u2 ;  // book UUID
+    this.data["uuid"] =  u1 + "-" + u2 ;        // book UUID
     
 };
 
@@ -40,6 +40,7 @@ Book.prototype.save_book = function(  ){
     console.log( "save book " + "mybook_" + this.data.uuid );
     localStorage.setItem("mybook_" + this.data.uuid, JSON.stringify(this.data) );
 };
+
 
 Book.prototype.load_book = function ( uuid ){    
     var saved_book = localStorage.getItem( "mybook_" + uuid );
@@ -88,8 +89,6 @@ Book.prototype.import_from_base64 = function(base64) {
 };
 
 
-
-
 Book.prototype.add = function(r) {    
     this.data["recs"].push(r);    
 };
@@ -101,7 +100,6 @@ Book.prototype.get_record_by_id = function(id) {
     }
     return {}
 };
-
 
 
 Book.prototype.update_record = function(id, title, body, pri, tags) {    
@@ -121,6 +119,7 @@ Book.prototype.update_record = function(id, title, body, pri, tags) {
 
 };
 
+
 Book.prototype.remove = function(id) {    
     // remove record by id
     console.log("remove id:" + id);
@@ -128,17 +127,14 @@ Book.prototype.remove = function(id) {
     this.data["recs"] = jQuery.grep(this.data["recs"], function(value) {
         return value.id != id ;
     }); 
-       
-
 };
-
-
 
 
 Book.prototype.print_trash_records = function() {  
     this.trash_mode=true;
     this.print_records();
 };
+
 
 Book.prototype.print_records = function() {    
         
@@ -210,6 +206,7 @@ Book.prototype.print_records = function() {
 
 }
 
+
 Book.prototype.get_tags_htmlblock = function(rec){
 // Generate html block of tags on record form
 
@@ -249,22 +246,17 @@ Book.prototype.get_tags_bookopt_htmlblock = function(){
 };
 
 
-
-
 function Record()
 {   
     this.id = Date.now();
     this.title = "New record";
     this.body = "-";
     this.pri = 3; 
-    this.tags = [];
-    
-    
+    this.tags = [];    
 }
 
 function delete_tag(t) {
 
-    
     book.data["tags"].splice(t,1);
     
     /*
@@ -795,9 +787,7 @@ $(document).ready(function(){
     </div> 
     
     &nbsp;&nbsp;
-    <div id="taras-books" class="btn-group">
-      <!--<button id="h1" class="btn btn-primary btn-lg" > work </button>    -->
-    </div> 
+    <div id="taras-books" class="btn-group"></div> 
     
     <div class="btn-group pull-right">
     <button type="button" class="btn btn-primary btn-lg dropdown-toggle" data-toggle="dropdown">
@@ -810,16 +800,8 @@ $(document).ready(function(){
             <li><a href="#" id="go_trash">  <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Trash </a></li>
     </ul>
   </div>
-    
-    
 </nav>
 
-<!--
-<div class="btn-group">
-  <button id="save_to_store" class="btn btn-primary"> Save </button>
-  <button id="load_from_store" class="btn btn-primary"> Load </button>
-</div> 
--->
 
 <!-- record form -->
 <div id="form">
@@ -833,7 +815,6 @@ $(document).ready(function(){
                 update <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button>
               <button id="restore_record" class="btn btn-warning "> 
                 restore <span class="glyphicon glyphicon-repeat" aria-hidden="true"/></button>
-                
           </span>
       </span>
     </div>
@@ -847,9 +828,7 @@ $(document).ready(function(){
         <button type="button" class="btn btn-primary btn-danger" onclick="set_priory(1);">High</button>
         <input type="hidden" id="r_priory" >
     </div>
-    
      <button id="delete_record" class="btn btn-danger btn-sm"> del <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>  
-        
      <input type="hidden" id="rid"> 
 </div>
 
@@ -865,7 +844,6 @@ $(document).ready(function(){
                 change <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button>
         </span>
     </div>
-       
     
     <div class="well">     
         <div class="input-group input-group-lg">
@@ -882,7 +860,6 @@ $(document).ready(function(){
     </div>
     
     <button id="create_new_book" type="button" class="btn btn-primary btn-default active" > Create new book</button>
-    
     <button type="button" class="btn btn-primary btn-default active" onclick="export_book();">Export book </button>    
     <button type="button" class="btn btn-primary btn-danger active" onclick="delete_book();">Delete this book</button>
     <p></p>
@@ -905,8 +882,6 @@ $(document).ready(function(){
                 Import into this book <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button>
         </span>
     </div>
-     
-    
 </div>
 
 <!-- records list -->
