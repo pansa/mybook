@@ -440,7 +440,7 @@ function update_booklist_menu(){
         if (OPTION_SHOW_BOOKS_TOP) {
             if (book.data.uuid == tmpbook.uuid) { continue };  // skip current book
             
-            tmpbooks2 += '<button class="btn btn-primary btn-lg"  onclick="open_book(' + "'" + shelve[b] + "'" +  ');  " >  ' + bname + ' </button> ';
+            tmpbooks2 += '<button class="btn btn-primary btn-md"  onclick="open_book(' + "'" + shelve[b] + "'" +  ');  " >  ' + bname + ' </button> ';
         };
         
     };
@@ -829,19 +829,19 @@ $(document).ready(function(){
 <!-- navigator -->
 <nav class="navbar">
     <div class="btn-group">
-      <button id="home" class="btn btn-primary btn-lg btn-info" >
+      <button id="home" class="btn btn-primary btn-md btn-info" >
         <span class="glyphicon glyphicon-home" aria-hidden="true"/> Home </button>
-      <button id="add" class="btn btn-primary btn-lg"> 
+      <button id="add" class="btn btn-primary btn-md"> 
         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> add </button>    
-      <button id="empty_trash" class="btn btn-primary  btn-danger btn-lg"> 
+      <button id="empty_trash" class="btn btn-primary  btn-danger btn-md"> 
         <span class="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span> Empty trash </button>    
     </div> 
     
     &nbsp;&nbsp;
     <div id="taras-books" class="btn-group"></div> 
     <!-- dropdown -->
-    <div class="btn-group pull-right">
-    <button type="button" class="btn btn-primary btn-lg dropdown-toggle" data-toggle="dropdown">
+    <div class="btn-group pull-right ">
+    <button type="button" class="btn btn-primary btn-md dropdown-toggle" data-toggle="dropdown">
     <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span> <span class="caret"></span></button>
         <ul id="book_dropdown" class="dropdown-menu" role="menu">
             <li class="dropdown-header">Books</li>
@@ -862,9 +862,9 @@ $(document).ready(function(){
     <div class="input-group input-group-lg">
           <input  id="title" type="text" class="form-control" placeholder="title">
           <span class="input-group-btn">                
-              <button id="update_record" class="btn btn-warning "> 
+              <button id="update_record" class="btn btn-warning btn-md"> 
                 update <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button>
-              <button id="restore_record" class="btn btn-warning "> 
+              <button id="restore_record" class="btn btn-warning btn-md"> 
                 restore <span class="glyphicon glyphicon-repeat" aria-hidden="true"/></button>
           </span>
       </span>
@@ -874,9 +874,9 @@ $(document).ready(function(){
         <textarea id="body" type="text" class="form-control " rows="3" placeholder="more text"></textarea>
     </div>
     <div class="btn-group" id="r_pri_buttons">
-        <button type="button" class="btn btn-primary btn-default active" onclick="set_priory(3);">Low</button>
-        <button type="button" class="btn btn-primary btn-warning"  onclick="set_priory(2);">Medium</button>
-        <button type="button" class="btn btn-primary btn-danger" onclick="set_priory(1);">High</button>
+        <button type="button" class="btn btn-primary btn-default btn-md active" onclick="set_priory(3);">Low</button>
+        <button type="button" class="btn btn-primary btn-warning btn-md"  onclick="set_priory(2);">Medium</button>
+        <button type="button" class="btn btn-primary btn-danger btn-md" onclick="set_priory(1);">High</button>
         <input type="hidden" id="r_priory" >
     </div>
      <button id="delete_record" class="btn btn-danger btn-sm"> del <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>  
