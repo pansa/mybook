@@ -13,7 +13,7 @@
 <script>
 
 // define global version
-MYBOOK_VER="0.1.2";
+MYBOOK_VER="0.1.3";
 OPTION_SHOW_BOOKS_TOP = true;   // ON/OFF books list on the top (Taras-books)
 
 
@@ -220,13 +220,13 @@ Book.prototype.get_tags_htmlblock = function(rec){
     
     // tags from rec (already attached)
     for(t in rec_tags ) {
-         html_return += '<label class="checkbox-inline"><input type="checkbox" value="' + rec_tags[t] + '" class="istag"' + rec_tags[t] +  '" checked>' + rec_tags[t] + '</label>';
+         html_return += '<label class="checkbox-inline"><input type="checkbox" onclick="tag_clicked();" value="' + rec_tags[t] + '" class="istag"' + rec_tags[t] +  '" checked>' + rec_tags[t] + '</label>';
     }
         
     // ... + other tags from book object
     for(t in this.data["tags"]) {        
         if ( jQuery.inArray(this.data["tags"][t], rec_tags)  < 0 ) {                    
-            html_return += '<label class="checkbox-inline"><input type="checkbox" value="' + this.data["tags"][t] + '" class="istag" >' + this.data["tags"][t] + '</label>';
+            html_return += '<label class="checkbox-inline"><input type="checkbox" onclick="tag_clicked();" value="' + this.data["tags"][t] + '" class="istag" >' + this.data["tags"][t] + '</label>';
         }    
     }
     
@@ -274,8 +274,10 @@ function delete_tag(t) {
 
 function set_priory(pri){
 
-$("#r_priory").val( pri );
-
+    $("#r_priory").val( pri );
+    console.log("Priority changed!");
+    save_changed_record();
+    
 };
 
 // Format record form for view
@@ -431,11 +433,14 @@ function update_booklist_menu(){
     
     for (var b in shelve){
     
-        var bname = JSON.parse(localStorage.getItem( "mybook_" + shelve[b] )).name; 
-        
+        var tmpbook = JSON.parse(localStorage.getItem( "mybook_" + shelve[b] ));
+        var bname = tmpbook.name; 
+                
         tmpbooks += '<li><a href="#" onclick="open_book(' + "'" + shelve[b] + "'" +  ');  " >  &nbsp;   <span class="glyphicon glyphicon-book " aria-hidden="true"></span>  ' + bname + '</a></li>'
         
         if (OPTION_SHOW_BOOKS_TOP) {
+            if (book.data.uuid == tmpbook.uuid) { continue };  // skip current book
+            
             tmpbooks2 += '<button class="btn btn-primary btn-lg"  onclick="open_book(' + "'" + shelve[b] + "'" +  ');  " >  ' + bname + ' </button> ';
         };
         
@@ -459,6 +464,36 @@ $("#home").html('<span class="glyphicon glyphicon-home" aria-hidden="true"/> ' +
 
 };
 
+function tag_clicked(){
+
+    console.log("tag changed");
+    save_changed_record();
+    
+};
+
+
+function save_changed_record(){
+    //return true;
+
+    var id = $("#rid").text();       
+        var title = $("#title").val();
+        var body = $("#body").val();
+        var pri = $("#r_priory").val();
+        
+        // process tags
+        var tags = $(".istag");
+        var checked_tags = [];
+        for (t in tags){
+            if ( tags[t].checked ) {            
+                checked_tags.push(tags[t].value);
+            }
+        }
+        
+        book.update_record( id, title, body, pri, checked_tags );       
+        book.save_book();
+
+
+};
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 // INTRANCE point
@@ -486,17 +521,13 @@ function main(){
         
         if ( book.load_book( lastbook_id )){
             //  lastbook load ok
-            
-        
+                    
         } else {
             // lastbook not found!
             console.log("Err: cant found lastbook in localStorage!");
             
         }        
     };
-    
-    
-
 
 };
 
@@ -531,7 +562,7 @@ $(document).ready(function(){
         } else { 
             Escape = (evt.keyCode == 27);
         }
-        if (isEscape) {
+        if (isEscape) {             
                 $("#home").click();
     }};
     
@@ -551,6 +582,25 @@ $(document).ready(function(){
         $("#form").hide();
     });
     
+    
+            // for Autosave functions
+            // -----------------------------------
+            $("#title").change(function(){    
+                console.log("title changed!");
+                save_changed_record();
+            });
+            
+            
+            
+            
+            $("#body").change(function(){    
+                console.log("body changed!");
+                save_changed_record();
+            });
+    
+    
+    
+    
     // Create NEW record pressed
     $("#add").click(function(){
         
@@ -569,13 +619,28 @@ $(document).ready(function(){
         $("#r_priory").val("3");
         
         
-        $("#save_new_record").show();
+        $("#save_new_record").hide();
         $("#delete_record").hide();
-        $("#update_record").hide();
+        $("#update_record").show();
         
         r = new Record();
         
+        r.title = $("#title").val();
+        r.body = $("#body").val();
+        r.pri = $("#r_priory").val();
+        
+        // process tags
+        var tags = $(".istag");        
+        for (t in tags){
+            if ( tags[t].checked ) {
+                r.tags.push(tags[t].value);
+            }
+        }
         $("#rid").text( r.id );
+        
+        book.add(r);
+        book.save_book();
+                
         $("#title").focus();
             
     });
@@ -590,8 +655,7 @@ $(document).ready(function(){
         var tags = $(".istag");        
         for (t in tags){
             if ( tags[t].checked ) {
-            //console.log( tags[t].value + " checked");
-            r.tags.push(tags[t].value);
+                r.tags.push(tags[t].value);
             }
         }
         
@@ -606,8 +670,7 @@ $(document).ready(function(){
     // UPDATE record
     $("#update_record").click(function(){
     
-        var id = $("#rid").text();
-        
+        var id = $("#rid").text();       
         var title = $("#title").val();
         var body = $("#body").val();
         var pri = $("#r_priory").val();
@@ -778,7 +841,7 @@ $(document).ready(function(){
 <!-- navigator -->
 <nav class="navbar">
     <div class="btn-group">
-      <button id="home" class="btn btn-primary btn-lg" >
+      <button id="home" class="btn btn-primary btn-lg btn-info" >
         <span class="glyphicon glyphicon-home" aria-hidden="true"/> Home </button>
       <button id="add" class="btn btn-primary btn-lg"> 
         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> add </button>    
@@ -788,7 +851,7 @@ $(document).ready(function(){
     
     &nbsp;&nbsp;
     <div id="taras-books" class="btn-group"></div> 
-    
+    <!-- dropdown -->
     <div class="btn-group pull-right">
     <button type="button" class="btn btn-primary btn-lg dropdown-toggle" data-toggle="dropdown">
     <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span> <span class="caret"></span></button>
@@ -798,6 +861,8 @@ $(document).ready(function(){
             <li class="dropdown-header">Current book</li>
             <li><a href="#" id="go_book_options"><span class="glyphicon glyphicon-cog " aria-hidden="true"></span> Book options</a></li>
             <li><a href="#" id="go_trash">  <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Trash </a></li>
+            <li class="dropdown-header">Global</li>
+            <!-- <li><a href="#" id="go_settings"><span class="glyphicon glyphicon-cog " aria-hidden="true"></span> Settings </a></li> -->
     </ul>
   </div>
 </nav>
@@ -807,7 +872,7 @@ $(document).ready(function(){
 <div id="form">
     <div id="tags_list"> TAGS HERE </div>
     <div class="input-group input-group-lg">
-          <input id="title" type="text" class="form-control" placeholder="title">
+          <input  id="title" type="text" class="form-control" placeholder="title">
           <span class="input-group-btn">  
               <button id="save_new_record" class="btn btn-success ">
                 add <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button> 
@@ -888,6 +953,14 @@ $(document).ready(function(){
 <div id="divlist">
     <p id="list">...</p>
 </div>
+
+<!-- settings -->
+<div id="settings">
+    
+    
+    
+</div>
+
 
 </body>
 </html>
