@@ -25,7 +25,7 @@ function Book()
     this.data = {};
     this.data["is_mybook"] = true;              // for is book object check        
     this.data["recs"] = recs;                   // records here
-    this.data["name"] = "New book";             // book title
+    this.data["name"] = "MyBook";             // book title
     this.data["tags"] = ["tag1","tag2"];        
     
     var u1 = new Date().getTime();
@@ -317,6 +317,7 @@ function show_record(id){
     $("#rid").text( rec.id );
     
     $("#title").val( rec.title );
+    $("#title").focus();
     $("#body").val( rec.body );
     $("#r_priory").val( rec.pri );
 
@@ -548,8 +549,9 @@ $(document).ready(function(){
     // HOTKEYs
     $(document).keypress(function( event ) {
         if ( event.which == 96 ) {  // `                    
-            $("#add").click();
-        } 
+            $("#add").click();            
+        }; 
+    
     });
     
     
@@ -566,9 +568,19 @@ $(document).ready(function(){
                 $("#home").click();
     }};
     
+    
+    
     $("#divlist").show();
     $("#form_book").hide();   
     $("#empty_trash").hide();
+    
+    
+    $("#title").keypress(function( event ) {            
+        if(event.which == 13) {       // ENTER pressed
+            $("#update_record").click();
+        }
+    
+    });
     
     // HOME button
     $("#home").click(function(){
