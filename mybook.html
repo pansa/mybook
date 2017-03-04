@@ -297,7 +297,6 @@ function show_record(id){
     
         $("#delete_record").show();
         $("#update_record").show();
-        $("#save_new_record").hide();
         $("#restore_record").hide();
         $("#r_pri_buttons").show();
         
@@ -308,7 +307,6 @@ function show_record(id){
         $("#restore_record").show();
         $("#delete_record").hide();
         $("#update_record").hide();
-        $("#save_new_record").hide();
         $("#r_pri_buttons").hide();
     };
         
@@ -631,7 +629,6 @@ $(document).ready(function(){
         $("#r_priory").val("3");
         
         
-        $("#save_new_record").hide();
         $("#delete_record").hide();
         $("#update_record").show();
         
@@ -657,28 +654,7 @@ $(document).ready(function(){
             
     });
     
-    // Press ADD on "create new" page
-    $("#save_new_record").click(function(){
-        r.title = $("#title").val();
-        r.body = $("#body").val();
-        r.pri = $("#r_priory").val();
-        
-        // process tags
-        var tags = $(".istag");        
-        for (t in tags){
-            if ( tags[t].checked ) {
-                r.tags.push(tags[t].value);
-            }
-        }
-        
-        book.add(r);
-        $("#form").hide();        
-        $("#save_new_record").hide();
-        
-        book.save_book();
-        book.print_records();
-    });
-    
+       
     // UPDATE record
     $("#update_record").click(function(){
     
@@ -837,7 +813,7 @@ $(document).ready(function(){
     
     
     
-    $("#save_new_record").hide();
+    
     $("#form").hide();
     book.print_records();
     
@@ -885,9 +861,7 @@ $(document).ready(function(){
     <div id="tags_list"> TAGS HERE </div>
     <div class="input-group input-group-lg">
           <input  id="title" type="text" class="form-control" placeholder="title">
-          <span class="input-group-btn">  
-              <button id="save_new_record" class="btn btn-success ">
-                add <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button> 
+          <span class="input-group-btn">                
               <button id="update_record" class="btn btn-warning "> 
                 update <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button>
               <button id="restore_record" class="btn btn-warning "> 
