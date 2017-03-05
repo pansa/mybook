@@ -7,11 +7,10 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
-
 <body>
 
-<script>
 
+<script>
 // define global version
 MYBOOK_VER="0.1.3";
 OPTION_SHOW_BOOKS_TOP = true;   // ON/OFF books list on the top (Taras-books)
@@ -75,12 +74,10 @@ Book.prototype.get_book64 = function() {
 
 
 Book.prototype.import_from_base64 = function(base64) {    
-    
     try {
         var decode = JSON.parse(decodeURIComponent(atob(base64))) ;    
         this.data = decode ;        
         this.save_book();
-        
         return true;
     } catch(e) {
         console.log("import error!");
@@ -103,7 +100,6 @@ Book.prototype.get_record_by_id = function(id) {
 
 
 Book.prototype.update_record = function(id, title, body, pri, tags) {    
-    
     for (r in this.data["recs"]){
         if ( this.data["recs"][r].id == id ) { 
         
@@ -116,7 +112,6 @@ Book.prototype.update_record = function(id, title, body, pri, tags) {
         }
     }
     return {}
-
 };
 
 
@@ -209,15 +204,12 @@ Book.prototype.print_records = function() {
 
 Book.prototype.get_tags_htmlblock = function(rec){
 // Generate html block of tags on record form
-
     var rec_tags = [];
     try {
         rec_tags = rec.tags ;
     } catch(e) {        
         };
-        
     var html_return = "" ; 
-    
     // tags from rec (already attached)
     for(t in rec_tags ) {
          html_return += '<label class="checkbox-inline"><input type="checkbox" onclick="tag_clicked();" value="' + rec_tags[t] + '" class="istag"' + rec_tags[t] +  '" checked>' + rec_tags[t] + '</label>';
@@ -229,15 +221,12 @@ Book.prototype.get_tags_htmlblock = function(rec){
             html_return += '<label class="checkbox-inline"><input type="checkbox" onclick="tag_clicked();" value="' + this.data["tags"][t] + '" class="istag" >' + this.data["tags"][t] + '</label>';
         }    
     }
-    
     return html_return ;
-   
 };
 
 
 Book.prototype.get_tags_bookopt_htmlblock = function(){
 // Generate html block of tags on BOOK OPTIONS form
-
     var html_return = "" ; 
     for(t in this.data["tags"]) {
         html_return += '&nbsp;&nbsp;<div class="btn-group"> <button type="button" class="btn">'  + this.data["tags"][t] + '</button>  <button onclick=delete_tag(' + t + ')  class="btn btn-primary  btn-danger"> - </button> </div>' ;
@@ -246,8 +235,7 @@ Book.prototype.get_tags_bookopt_htmlblock = function(){
 };
 
 
-function Record()
-{   
+function Record(){   
     this.id = Date.now();
     this.title = "New record";
     this.body = "-";
@@ -255,8 +243,7 @@ function Record()
     this.tags = [];    
 }
 
-function delete_tag(t) {
-
+function delete_tag(t){
     book.data["tags"].splice(t,1);
     
     /*
@@ -266,31 +253,24 @@ function delete_tag(t) {
     */
     
     book.save_book();
-    
     $("#go_book_options").click();
-    
 };
 
 
 function set_priory(pri){
-
     $("#r_priory").val( pri );
     console.log("Priority changed!");
     save_changed_record();
-    
 };
 
 // Format record form for view
 function show_record(id){
-
     rec = book.get_record_by_id(id);
-    
     window.scrollTo(0,1);
     
     // fill tag list                
     var tags_html = book.get_tags_htmlblock( rec );
     $("#tags_list").html(tags_html);
-    
     
     if ( jQuery.inArray("__deleted__", rec.tags ) < 0  ) {
         // its normal record 
@@ -300,7 +280,6 @@ function show_record(id){
         $("#restore_record").hide();
         $("#r_pri_buttons").show();
         
-        
     } else {
         // its DELETED record
         
@@ -309,18 +288,12 @@ function show_record(id){
         $("#update_record").hide();
         $("#r_pri_buttons").hide();
     };
-        
     $("#form").show();
-    
     $("#rid").text( rec.id );
-    
     $("#title").val( rec.title );
     $("#title").focus();
     $("#body").val( rec.body );
     $("#r_priory").val( rec.pri );
-
-
-
 };
 
 
@@ -332,56 +305,43 @@ function export_book(){
 
 
 function import_book(){
-        
     var old_book_id = book["data"].uuid;
     console.log('importing to book ' + old_book_id);
         
     var data = $("#book_data_i").val();
     // TODO check import result
     book.import_from_base64(data);
-    
-    
-    
+
     if ( book["data"].uuid != old_book_id ) {
         console.log('add to shelve new book ' + book["data"].uuid);
         shelve.push( book["data"].uuid );
         store_shelve();
     }
-    
     $("#book_data_i").val("")
     $("#home").click();
-    
 };
 
 
 
 // save lastbook and shelve to localStorage
 function store_shelve(){
-    
     localStorage.setItem("mybook_shelve", JSON.stringify( shelve ) );    
     localStorage.setItem("mybook_lastbook", lastbook_id );
-
 }
 
 // save lastbook and shelve to localStorage
 function load_shelve(){
-    
-    
     var tmps = JSON.parse(localStorage.getItem("mybook_shelve" ));    
-    
     if (tmps) {
         return tmps;
     } else {
         return [];
     };
-        
-
 }
 
 
 // open book when clicked from dropmenu
 function open_book(id){
-
     book.load_book(id);
     localStorage.setItem("mybook_lastbook", book.data.uuid );
     update_booklist_menu();
@@ -392,7 +352,6 @@ function open_book(id){
 
 // delete current book
 function delete_book(){
-
     del_book_id = book.data.uuid;
     console.log("DEL " +  del_book_id);
     
@@ -415,17 +374,12 @@ function delete_book(){
         localStorage.removeItem("mybook_" + del_book_id);
         localStorage.removeItem("mybook_lastbook");
         main();
-        
-    
     }
-    
-
 };
 
 
 // generate books list in dropmenu
 function update_booklist_menu(){
-
     var tmpbooks = '' ;
     var tmpbooks2 = '' ;
     //// > work 
@@ -451,23 +405,16 @@ function update_booklist_menu(){
 
 //return list of all stored books
 function shelve_get_books () {
-
-    
-
 }
 
 
 function update_home_button(){
-
-$("#home").html('<span class="glyphicon glyphicon-home" aria-hidden="true"/> ' + book.data.name) ;
-
+    $("#home").html('<span class="glyphicon glyphicon-home" aria-hidden="true"/> ' + book.data.name) ;
 };
 
 function tag_clicked(){
-
     console.log("tag changed");
     save_changed_record();
-    
 };
 
 
@@ -490,20 +437,15 @@ function save_changed_record(){
         
         book.update_record( id, title, body, pri, checked_tags );       
         book.save_book();
-
-
 };
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 // INTRANCE point
 function main(){
-
-    
     shelve = []
     // Loading book on start
     book = new Book(); 
     lastbook_id = localStorage.getItem("mybook_lastbook");
-        
     
     if (! lastbook_id ) {            
         // no stored books, use NEW book
@@ -646,10 +588,8 @@ $(document).ready(function(){
             }
         }
         $("#rid").text( r.id );
-        
         book.add(r);
         book.save_book();
-                
         $("#title").focus();
             
     });
@@ -673,7 +613,6 @@ $(document).ready(function(){
         }
         
         book.update_record( id, title, body, pri, checked_tags );       
-        
         $("#form").hide();
         book.save_book();
         book.print_records();
@@ -703,16 +642,12 @@ $(document).ready(function(){
     $("#delete_record").click(function(){
         var id = $("#rid").text();
         console.log("removing id:" + id);
-        
         var r = book.get_record_by_id(id);
         r["tags"].push("__deleted__");
         //book.remove(id);
-        
-        
         $("#form").hide();
         book.save_book();
         book.print_records();
-        
     });
     
     $("#save_to_store").click(function(){
@@ -729,10 +664,8 @@ $(document).ready(function(){
         console.log("go trash mode");
         $("#empty_trash").show();
         $("#form_book").hide();
-        
         book.print_trash_records();
         $("#form").hide();
-        
     });
 
     //  EMPTY Trash
@@ -777,13 +710,10 @@ $(document).ready(function(){
     
     // add new tag to book
     $("#add_new_tag").click(function(){
-    
         book["data"].tags.push( $("#newtag").val() );
         $("#newtag").val("");
         book.save_book();
         $("#go_book_options").click();
-        
-        
     });
     
     
@@ -807,16 +737,11 @@ $(document).ready(function(){
         store_shelve();
         update_home_button();
         book.save_book( );
-        
-        
     });
     
-    
-    
-    
+
     $("#form").hide();
     book.print_records();
-    
 });
 
 
@@ -827,8 +752,8 @@ $(document).ready(function(){
 <!-- /////////////////  HTML MARKUP /////////////////////////////////////////////////////////////////////////////////////////// -->
 
 <!-- navigator -->
-<nav class="navbar">
-    <div class="btn-group">
+<nav class="navbar ">
+    <div class="btn-group  btn-group-md">
       <button id="home" class="btn btn-primary btn-md btn-info" >
         <span class="glyphicon glyphicon-home" aria-hidden="true"/> Home </button>
       <button id="add" class="btn btn-primary btn-md"> 
@@ -838,11 +763,12 @@ $(document).ready(function(){
     </div> 
     
     &nbsp;&nbsp;
-    <div id="taras-books" class="btn-group"></div> 
+    <div id="taras-books" class="btn-group  btn-group-md"></div> 
+    
     <!-- dropdown -->
     <div class="btn-group pull-right ">
-    <button type="button" class="btn btn-primary btn-md dropdown-toggle" data-toggle="dropdown">
-    <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span> <span class="caret"></span></button>
+        <button type="button" class="btn btn-primary btn-md dropdown-toggle" data-toggle="dropdown">
+            <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span> <span class="caret"></span></button>
         <ul id="book_dropdown" class="dropdown-menu" role="menu">
             <li class="dropdown-header">Books</li>
             <div id="listbooks"></div>
@@ -851,9 +777,11 @@ $(document).ready(function(){
             <li><a href="#" id="go_trash">  <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Trash </a></li>
             <li class="dropdown-header">Global</li>
             <!-- <li><a href="#" id="go_settings"><span class="glyphicon glyphicon-cog " aria-hidden="true"></span> Settings </a></li> -->
-    </ul>
-  </div>
+        </ul>
+    </div>
+    
 </nav>
+
 
 
 <!-- record form -->
@@ -863,7 +791,7 @@ $(document).ready(function(){
           <input  id="title" type="text" class="form-control" placeholder="title">
           <span class="input-group-btn">                
               <button id="update_record" class="btn btn-warning btn-md"> 
-                update <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button>
+                 <span class="glyphicon glyphicon-ok" aria-hidden="true"/></button>
               <button id="restore_record" class="btn btn-warning btn-md"> 
                 restore <span class="glyphicon glyphicon-repeat" aria-hidden="true"/></button>
           </span>
@@ -881,7 +809,9 @@ $(document).ready(function(){
     </div>
      <button id="delete_record" class="btn btn-danger btn-sm"> del <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>  
      <input type="hidden" id="rid"> 
+     
 </div>
+
 
 <!-- book options form -->
 <div id="form_book">
@@ -923,8 +853,7 @@ $(document).ready(function(){
         <div class="col-sm-1" >Book data</div>        
         <div class="col-sm-8"><textarea id="book_data" type="text" class="form-control " rows="3"></textarea> </div>        
     </div>
-    
-    
+        
     <div id="book_import" class="input-group">
         <span class="input-group-addon" >Import data</span>
         <input type="text" id="book_data_i" class="form-control" placeholder="Paste data here..." aria-describedby="basic-addon1">
@@ -936,6 +865,7 @@ $(document).ready(function(){
 </div>
 
 <!-- records list -->
+
 <div id="divlist">
     <p id="list">...</p>
 </div>
